@@ -456,3 +456,87 @@ footer img{width:125px}
   html {scroll-behavior:auto;}
   .nouvence-intro-pending body {overflow:auto;}
 }
+
+/* ────────────────────────────────────────────────────────────────
+   NOUVĒNCE · Movimiento editorial al recorrer la página · v1
+   Elegante, sin bucles ni movimientos molestos.
+   ──────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  .nouvence-motion-ready .nouvence-reveal {
+    transition:
+      opacity .86s cubic-bezier(.18,.62,.25,1) var(--nouvence-reveal-delay,0ms),
+      transform 1.02s cubic-bezier(.18,.76,.22,1) var(--nouvence-reveal-delay,0ms);
+  }
+  .nouvence-motion-ready .nouvence-reveal:not(.nouvence-reveal--shown) {
+    opacity: 0;
+    transform: translate3d(0,31px,0) scale(.985);
+  }
+  .nouvence-motion-ready .nouvence-reveal.nouvence-reveal--shown {
+    opacity: 1;
+    transform: translate3d(0,0,0) scale(1);
+  }
+
+  /* La luz recorre una sola vez la fotografía protagonista. */
+  .hero-visual::after {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(112deg,
+      transparent 25%,
+      rgba(255,251,241,.02) 39%,
+      rgba(255,243,218,.24) 49%,
+      rgba(255,252,245,.04) 59%,
+      transparent 73%);
+    transform: translateX(-145%);
+    animation: nouvence-photo-light 1.8s .55s ease-in-out both;
+  }
+  @keyframes nouvence-photo-light {
+    from { transform: translateX(-145%); opacity: 0; }
+    20%  { opacity: 1; }
+    70%  { opacity: .8; }
+    to   { transform: translateX(145%); opacity: 0; }
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .service-card {
+    overflow: hidden;
+    transition: box-shadow .65s ease, background-color .65s ease;
+  }
+  .service-card .image-slot {
+    transition: transform .9s cubic-bezier(.18,.8,.25,1);
+    transform-origin: center;
+  }
+  .service-card:hover {
+    box-shadow: 0 15px 44px rgba(74,51,32,.11);
+  }
+  .service-card:hover .image-slot {
+    transform: scale(1.035);
+  }
+  .service-card .service-copy a,
+  .text-link {
+    transition: color .25s ease, letter-spacing .35s ease;
+  }
+  .service-card:hover .service-copy a,
+  .text-link:hover {
+    color: #a47f53;
+    letter-spacing: .16em;
+  }
+  .button {
+    transition: background-color .25s ease, color .25s ease,
+      box-shadow .32s ease, transform .32s ease;
+  }
+  .button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 19px rgba(50,34,22,.12);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nouvence-reveal,
+  .service-card,
+  .service-card .image-slot,
+  .button { transition: none !important; animation: none !important; }
+  .hero-visual::after { display: none !important; }
+  .nouvence-motion-ready .nouvence-reveal { opacity: 1 !important; transform: none !important; }
+}
