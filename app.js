@@ -76,7 +76,28 @@ const SITE_COPY_IDS = {
   pointsButtonLabel: 'pointsButtonLabel',
   contactEyebrow: 'contactEyebrow',
   contactTitle: 'contactTitle',
-  contactIntro: 'contactIntro'
+  contactIntro: 'contactIntro',
+  aboutEyebrow: 'aboutEyebrow',
+  aboutTitle: 'aboutTitle',
+  aboutBody: 'aboutBody',
+  missionTitle: 'missionTitle',
+  missionBody: 'missionBody',
+  visionTitle: 'visionTitle',
+  visionBody: 'visionBody',
+  valuesTitle: 'valuesTitle',
+  valuesBody: 'valuesBody',
+  productsEyebrow: 'productsEyebrow',
+  productsTitle: 'productsTitle',
+  productsIntro: 'productsIntro',
+  faqEyebrow: 'faqEyebrow',
+  faqTitle: 'faqTitle',
+  faqIntro: 'faqIntro',
+  faqQuestion1: 'faqQuestion1',
+  faqAnswer1: 'faqAnswer1',
+  faqQuestion2: 'faqQuestion2',
+  faqAnswer2: 'faqAnswer2',
+  faqQuestion3: 'faqQuestion3',
+  faqAnswer3: 'faqAnswer3'
 };
 
 function applySiteCopy(copy) {
@@ -102,9 +123,21 @@ function applySettings(s) {
   setText('editorialBody', s.editorial_body);
 
   applySiteCopy(s.site_copy);
+  renderProducts(s.site_copy && s.site_copy.products, s.whatsapp);
+  renderPrivacyLink(s.site_copy && s.site_copy.privacyUrl);
   applyImage(document.getElementById('editorialImageSlot'), s.editorial_image_url);
 
   setText('contactWhatsapp', s.whatsapp || 'Por configurar');
+  const whatsappCta = document.getElementById('contactWhatsAppCta');
+  const whatsappDigits = normalizedWhatsapp(s.whatsapp);
+  if (whatsappCta) {
+    if (whatsappDigits) {
+      whatsappCta.href = `https://wa.me/${whatsappDigits}?text=${encodeURIComponent('Hola, me gustaría agendar una cita en NOUVĒNCE.')}`;
+      whatsappCta.target = '_blank';
+      whatsappCta.rel = 'noopener noreferrer';
+      whatsappCta.hidden = false;
+    } else whatsappCta.hidden = true;
+  }
   setText('contactAddress', s.address || 'Por configurar');
   setText('contactHours', s.hours || 'Por configurar');
 
@@ -126,6 +159,93 @@ function applySettings(s) {
     } else {
       instagram.textContent = 'Por configurar';
     }
+  }
+}
+
+// The product catalogue lives inside web_settings.site_copy. No new table,
+// policies, or permissions are required: existing authenticated updates are reused.
+function normalizedWhatsapp(phone) {
+  const digits = String(phone || '').replace(/\D/g, '');
+  if (digits.length === 10) return `52${digits}`;
+  if (digits.length >= 11 && digits.length <= 15) return digits;
+  return '';
+}
+
+function safeImageUrl(value) {
+  if (!value || typeof value !== 'string') return '';
+  try {
+    const url = new URL(value, window.location.href);
+    return ['https:', 'http:'].includes(url.protocol) ? url.href : '';
+  } catch (_) {
+    return '';
+  }
+}
+
+function renderPrivacyLink(value) {
+  const link = document.getElementById('privacyLink');
+  if (!link) return;
+  const url = safeImageUrl(value);
+  if (url) {
+    link.href = url;
+    link.hidden = false;
+  } else link.hidden = true;
+}
+
+function appendProductText(parent, tag, className, value) {
+  if (!value || !String(value).trim()) return null;
+  const el = document.createElement(tag);
+  el.className = className;
+  el.textContent = String(value).trim();
+  parent.appendChild(el);
+  return el;
+}
+
+function renderProducts(items, whatsapp) {
+  const grid = document.getElementById('productGrid');
+  const empty = document.getElementById('productsEmpty');
+  if (!grid || !empty) return;
+  const active = Array.isArray(items) ? items.filter(p => p && p.is_active === true && String(p.name || '').trim()) : [];
+  grid.replaceChildren();
+  empty.hidden = active.length > 0;
+  const wa = normalizedWhatsapp(whatsapp);
+  for (const product of active) {
+    const card = document.createElement('article');
+    card.className = 'product-card';
+    const photo = document.createElement('div');
+    photo.className = 'product-photo';
+    const imageUrl = safeImageUrl(product.image_url);
+    if (imageUrl) {
+      const img = document.createElement('img');
+      img.src = imageUrl;
+      img.alt = `Producto: ${product.name}`;
+      img.loading = 'lazy';
+      photo.appendChild(img);
+    } else {
+      photo.classList.add('no-image');
+      const placeholder = document.createElement('span');
+      placeholder.textContent = 'NOUVĒNCE';
+      photo.appendChild(placeholder);
+    }
+    card.appendChild(photo);
+    const copy = document.createElement('div');
+    copy.className = 'product-copy';
+    appendProductText(copy, 'span', 'product-category', product.category);
+    appendProductText(copy, 'h3', '', product.name);
+    appendProductText(copy, 'p', 'product-brand', product.brand);
+    appendProductText(copy, 'p', 'product-size', product.size);
+    appendProductText(copy, 'p', 'product-description', product.description);
+    appendProductText(copy, 'p', 'product-price', product.price || 'Consultar precio');
+    const cta = document.createElement('a');
+    cta.className = 'button button-dark';
+    cta.textContent = 'Consultar producto ↗';
+    if (wa) {
+      cta.href = `https://wa.me/${wa}?text=${encodeURIComponent(`Hola, me interesa ${product.name} de NOUVĒNCE. ¿Me confirman precio y disponibilidad?`)}`;
+      cta.target = '_blank';
+      cta.rel = 'noopener noreferrer';
+    } else cta.href = '#contacto';
+    copy.appendChild(cta);
+    card.appendChild(copy);
+    grid.appendChild(card);
   }
 }
 

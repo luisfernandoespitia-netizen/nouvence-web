@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f6f0e8">
   <title>NOUVĒNCE · Spa & Medicina Estética</title>
-  <meta name="description" content="NOUVĒNCE Spa & Medicina Estética. Un espacio de belleza, bienestar y medicina estética.">
+  <meta name="description" content="NOUVĒNCE Spa & Medicina Estética. Tratamientos faciales, cuidado estético, productos de belleza y experiencias de bienestar. Consulta nuestro catálogo y agenda una cita.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=motion1">
+  <link rel="stylesheet" href="styles.css?v=catalog1">
   <!-- La intro se reproduce una sola vez por sesión; no se muestra si se prefiere reducir movimiento. -->
   <script>
     (function () {
@@ -45,7 +45,8 @@
 
     <nav class="nav" aria-label="Navegación principal">
       <a href="#servicios">Servicios</a>
-      <a href="#filosofia">NOUVĒNCE</a>
+      <a href="#productos">Productos</a>
+      <a href="#nosotros">Nosotros</a>
       <a href="#puntos">Puntos</a>
       <a href="#contacto">Contacto</a>
     </nav>
@@ -85,6 +86,31 @@
           </p>
           <p id="manifestoNote" class="serif-note">Elegancia · bienestar · ciencia · naturalidad</p>
         </div>
+      </div>
+    </section>
+
+    <section class="about-section" id="nosotros">
+      <div class="about-heading">
+        <p id="aboutEyebrow" class="eyebrow">Nuestra esencia</p>
+        <h2 id="aboutTitle">El cuidado también es una forma de belleza.</h2>
+        <p id="aboutBody" class="about-lead">En NOUVĒNCE creemos en dedicar tiempo a lo esencial: escucharte, comprender lo que buscas y acompañarte con una atención cercana.</p>
+      </div>
+      <div class="purpose-grid">
+        <article class="purpose-card">
+          <span class="purpose-index">01 / PROPÓSITO</span>
+          <h3 id="missionTitle">Nuestra misión</h3>
+          <p id="missionBody">Ofrecer experiencias de bienestar y estética personalizadas que realcen la belleza natural de cada persona, en un entorno de confianza, cuidado y profesionalismo.</p>
+        </article>
+        <article class="purpose-card">
+          <span class="purpose-index">02 / FUTURO</span>
+          <h3 id="visionTitle">Nuestra visión</h3>
+          <p id="visionBody">Ser un espacio de referencia en bienestar y estética, reconocido por su atención cercana, sus prácticas responsables y la calidad de cada experiencia.</p>
+        </article>
+        <article class="purpose-card">
+          <span class="purpose-index">03 / ESENCIA</span>
+          <h3 id="valuesTitle">Nuestros valores</h3>
+          <p id="valuesBody">Confianza · Elegancia · Responsabilidad · Naturalidad</p>
+        </article>
       </div>
     </section>
 
@@ -151,6 +177,22 @@
       </div>
     </section>
 
+    <section class="products-section" id="productos">
+      <div class="section-heading products-heading">
+        <div>
+          <p id="productsEyebrow" class="eyebrow">Selección NOUVĒNCE</p>
+          <h2 id="productsTitle">Cuidados que continúan en casa.</h2>
+        </div>
+        <p id="productsIntro">Conoce nuestra selección de productos para el cuidado personal. Consulta presentaciones, precios y disponibilidad directamente con nuestro equipo.</p>
+      </div>
+      <div id="productGrid" class="product-grid" aria-live="polite"></div>
+      <div id="productsEmpty" class="catalogue-empty">
+        <p>¿Buscas un producto especial para tu rutina?</p>
+        <a class="text-link" href="#contacto">Consulta los productos disponibles →</a>
+      </div>
+      <p class="products-disclaimer">La disponibilidad y el precio final se confirman directamente con NOUVĒNCE.</p>
+    </section>
+
     <section class="editorial-feature">
       <div id="editorialImageSlot" class="image-slot feature-image" data-slot="editorial">
         <span>Imagen editorial</span>
@@ -178,7 +220,29 @@
       <a id="pointsButtonLabel" class="button button-light" href="https://nouvence-puntos.netlify.app/">Consulta tu tarjeta</a>
     </section>
     
-      <section class="contact" id="contacto">
+    <section class="faq-section" id="preguntas">
+      <div>
+        <p id="faqEyebrow" class="eyebrow">Antes de visitarnos</p>
+        <h2 id="faqTitle">Preguntas frecuentes.</h2>
+        <p id="faqIntro">Queremos que te sientas informada antes de elegir tu experiencia.</p>
+      </div>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary id="faqQuestion1">¿Cómo puedo agendar una cita?</summary>
+          <p id="faqAnswer1">Escríbenos por WhatsApp para consultar horarios y confirmar tu reservación.</p>
+        </details>
+        <details class="faq-item">
+          <summary id="faqQuestion2">¿Cómo elijo el tratamiento adecuado?</summary>
+          <p id="faqAnswer2">Nuestro equipo puede orientarte. Los procedimientos médicos requieren una valoración profesional previa.</p>
+        </details>
+        <details class="faq-item">
+          <summary id="faqQuestion3">¿Los precios y productos están siempre disponibles?</summary>
+          <p id="faqAnswer3">Los precios, promociones y existencias se confirman directamente antes de tu cita o compra.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="contact" id="contacto">
       <div class="contact-intro">
         <p id="contactEyebrow" class="eyebrow">Contacto</p>
         <h2 id="contactTitle">Tu próxima visita<br>empieza aquí.</h2>
@@ -189,6 +253,7 @@
       </div>
 
       <div class="contact-card">
+        <a id="contactWhatsAppCta" class="button button-dark contact-whatsapp-cta" href="#contacto" hidden>Agendar por WhatsApp ↗</a>
         <div class="contact-row">
           <span>WhatsApp</span>
           <strong id="contactWhatsapp">Por configurar</strong>
@@ -212,12 +277,15 @@
   <footer>
     <img src="logo-nouvence.png" alt="" aria-hidden="true">
     <p>NOUVĒNCE · Spa & Medicina Estética</p>
-    <p>© <span id="year"></span> NOUVĒNCE</p>
+    <div class="footer-meta">
+      <p>© <span id="year"></span> NOUVĒNCE</p>
+      <a id="privacyLink" href="#" rel="noopener noreferrer" target="_blank" hidden>Aviso de privacidad ↗</a>
+    </div>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js?v=4"></script>
-  <script src="app.js?v=sync4"></script>
+  <script src="app.js?v=catalog1"></script>
   <script src="intro.js?v=2"></script>
   <script src="reveal.js?v=1"></script>
 </body>
