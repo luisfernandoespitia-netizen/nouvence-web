@@ -613,3 +613,49 @@ footer img{width:125px}
   .site-header {padding-bottom:10px;}
   .faq-item summary {font-size:13px;}
 }
+
+
+/* Catálogo NOUVĒNCE v2: categorías dinámicas y detalle accesible. */
+.service-copy .service-preview-price {font-size:12px;letter-spacing:.05em;color:#8b6f4d;margin-top:13px;}
+.service-copy .service-explore {
+  display:inline-flex;align-items:center;gap:12px;margin-top:18px;border:0;
+  padding:12px 0;background:none;color:var(--ink);font:500 10px/1.4 "Montserrat",sans-serif;
+  letter-spacing:.16em;text-transform:uppercase;cursor:pointer;border-bottom:1px solid #c5a46d;
+}
+.service-explore:hover,.service-explore:focus-visible {color:#9b794b;outline-offset:4px;}
+.services-empty {grid-column:1/-1;text-align:center;padding:50px 25px;background:var(--paper);}
+.service-dialog {
+  width:min(900px,calc(100vw - 28px));max-height:min(88vh,980px);margin:auto;border:1px solid rgba(197,164,109,.6);
+  padding:0;background:#fbf8f3;color:#1c1a18;box-shadow:0 28px 110px rgba(20,12,8,.3);
+}
+.service-dialog::backdrop {background:rgba(25,19,16,.68);backdrop-filter:blur(5px)}
+.service-dialog-inner {padding:clamp(30px,5vw,65px);position:relative;}
+.service-dialog-close {position:absolute;right:25px;top:18px;border:0;background:none;color:#56483b;font-size:35px;cursor:pointer;line-height:1;padding:8px;}
+.service-dialog-close:focus-visible {outline:2px solid #b99a69;outline-offset:3px;}
+.service-dialog-top {padding:0 20px 24px 0;border-bottom:1px solid rgba(111,88,72,.22);}
+.service-dialog-top h2 {font:400 clamp(42px,6vw,71px)/.98 'Cormorant Garamond',serif;margin:16px 0 21px;}
+.service-dialog-top>p:not(.service-dialog-category-price) {line-height:1.85;color:#6f655e;font-size:14px;max-width:690px;white-space:pre-line;}
+.service-dialog-category-price {font-size:12px;letter-spacing:.08em;color:#916c47;}
+.service-dialog-treatments {display:grid;gap:16px;padding:26px 0;}
+.service-dialog-treatments>.eyebrow {margin:0 0 7px;}
+.service-treatment {display:grid;grid-template-columns:175px 1fr;gap:23px;padding:19px;background:white;border:1px solid rgba(111,88,72,.16);}
+.service-treatment:not(:has(img)) {grid-template-columns:1fr;}
+.service-treatment-image {display:block;width:100%;height:155px;object-fit:cover;}
+.service-treatment-body h3 {font:500 32px/1.15 'Cormorant Garamond',serif;margin:0 0 10px;}
+.service-treatment-body p {font-size:13px;line-height:1.8;color:#6c625a;white-space:pre-line;margin:0;}
+.service-treatment-meta {display:flex;gap:12px;flex-wrap:wrap;margin-top:14px;}
+.service-treatment-meta span {font-size:11px;letter-spacing:.04em;background:#f4eee7;border:1px solid #dfd0bd;padding:8px 12px;}
+.service-treatment-pending {font-size:15px;line-height:1.85;color:#756b63;background:#f4eee7;padding:24px;}
+.service-dialog-footer {border-top:1px solid rgba(111,88,72,.22);padding-top:23px;display:flex;justify-content:space-between;align-items:center;gap:25px;}
+.service-dialog-footer p {max-width:500px;line-height:1.7;color:#7d7269;font-size:11px;margin:0;}
+.service-dialog-footer .button {white-space:nowrap;}
+@media(max-width:720px) {
+  .service-dialog {max-height:90vh;}
+  .service-dialog-inner {padding:38px 22px 26px;}
+  .service-dialog-close {top:8px;right:9px;}
+  .service-dialog-top {padding-right:10px;}
+  .service-treatment {grid-template-columns:1fr;gap:14px;}
+  .service-treatment-image {height:180px;}
+  .service-dialog-footer {display:block;}
+  .service-dialog-footer .button {display:inline-block;margin-top:18px;}
+}

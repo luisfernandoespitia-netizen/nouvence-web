@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=catalog1">
+  <link rel="stylesheet" href="styles.css?v=catalogo2">
   <!-- La intro se reproduce una sola vez por sesión; no se muestra si se prefiere reducir movimiento. -->
   <script>
     (function () {
@@ -126,55 +126,50 @@
         </p>
       </div>
 
-      <div class="service-grid">
-        <article class="service-card service-card-large" data-service-slug="faciales">
-          <div class="image-slot" data-slot="faciales">
-            <span>Imagen · Faciales</span>
-          </div>
-          <div class="service-copy">
-            <span>01</span>
-            <h3>Faciales</h3>
-            <p>Protocolos pensados para hidratar, iluminar, renovar y cuidar tu piel.</p>
-            <a href="#contacto">Explorar →</a>
-          </div>
+      <div class="service-grid" id="serviceGrid" aria-live="polite">
+        <!-- Contenido de respaldo: se sustituye con las categorías guardadas en Supabase. -->
+        <article class="service-card service-card-large">
+          <div class="image-slot"><span>NOUVĒNCE · Medicina Estética</span></div>
+          <div class="service-copy"><span>01</span><h3>Medicina Estética</h3>
+            <p>Una atención estética individualizada, centrada en la armonía y el cuidado consciente.</p>
+            <button class="service-explore" type="button" data-fallback-position="1">Ver tratamientos <span aria-hidden="true">↗</span></button></div>
         </article>
-
-        <article class="service-card" data-service-slug="medicina-estetica">
-          <div class="image-slot" data-slot="medicina">
-            <span>Imagen · Medicina estética</span>
-          </div>
-          <div class="service-copy">
-            <span>02</span>
-            <h3>Medicina estética</h3>
-            <p>Tratamientos de precisión con una mirada natural y personalizada.</p>
-            <a href="#contacto">Explorar →</a>
-          </div>
+        <article class="service-card">
+          <div class="image-slot"><span>NOUVĒNCE · Spa &amp; Beauty</span></div>
+          <div class="service-copy"><span>02</span><h3>Spa &amp; Beauty</h3>
+            <p>Un momento de cuidado personal para reconectar contigo y renovar tu bienestar.</p>
+            <button class="service-explore" type="button" data-fallback-position="2">Ver tratamientos <span aria-hidden="true">↗</span></button></div>
         </article>
-
-        <article class="service-card" data-service-slug="pestanas">
-          <div class="image-slot" data-slot="pestanas">
-            <span>Imagen · Pestañas</span>
-          </div>
-          <div class="service-copy">
-            <span>03</span>
-            <h3>Pestañas</h3>
-            <p>Detalles que enmarcan la mirada con elegancia y armonía.</p>
-            <a href="#contacto">Explorar →</a>
-          </div>
+        <article class="service-card">
+          <div class="image-slot"><span>NOUVĒNCE · Metabolic</span></div>
+          <div class="service-copy"><span>03</span><h3>Metabolic</h3>
+            <p>Un enfoque de bienestar que comienza por conocer las necesidades de cada persona.</p>
+            <button class="service-explore" type="button" data-fallback-position="3">Ver tratamientos <span aria-hidden="true">↗</span></button></div>
         </article>
-
-        <article class="service-card service-card-wide" data-service-slug="body-bienestar">
-          <div class="image-slot" data-slot="body">
-            <span>Imagen · Body</span>
-          </div>
-          <div class="service-copy">
-            <span>04</span>
-            <h3>Body & bienestar</h3>
-            <p>Experiencias corporales para sentirte bien por dentro y por fuera.</p>
-            <a href="#contacto">Explorar →</a>
-          </div>
+        <article class="service-card service-card-wide">
+          <div class="image-slot"><span>NOUVĒNCE · Regenerative</span></div>
+          <div class="service-copy"><span>04</span><h3>Regenerative</h3>
+            <p>Conoce un enfoque responsable y personalizado del cuidado estético.</p>
+            <button class="service-explore" type="button" data-fallback-position="4">Ver tratamientos <span aria-hidden="true">↗</span></button></div>
         </article>
       </div>
+
+      <dialog class="service-dialog" id="serviceDialog" aria-labelledby="serviceDialogTitle" aria-describedby="serviceDialogIntro">
+        <div class="service-dialog-inner">
+          <button id="serviceDialogClose" class="service-dialog-close" type="button" aria-label="Cerrar detalles">×</button>
+          <div class="service-dialog-top">
+            <span id="serviceDialogNumber" class="eyebrow">EXPERIENCIA NOUVĒNCE</span>
+            <h2 id="serviceDialogTitle">Tu experiencia NOUVĒNCE</h2>
+            <p id="serviceDialogIntro"></p>
+            <p id="serviceDialogPrice" class="service-dialog-category-price" hidden></p>
+          </div>
+          <div id="serviceDialogTreatments" class="service-dialog-treatments"></div>
+          <div class="service-dialog-footer">
+            <p>La disponibilidad, duración y precio final se confirman antes de tu visita. Los procedimientos médicos requieren valoración por un profesional facultado.</p>
+            <a id="serviceDialogCta" class="button button-dark" href="#contacto">Consultar disponibilidad ↗</a>
+          </div>
+        </div>
+      </dialog>
     </section>
 
     <section class="products-section" id="productos">
@@ -285,7 +280,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js?v=4"></script>
-  <script src="app.js?v=catalog1"></script>
+  <script src="app.js?v=catalogo2"></script>
   <script src="intro.js?v=2"></script>
   <script src="reveal.js?v=1"></script>
 </body>

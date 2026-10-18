@@ -127,6 +127,8 @@ function applySettings(s) {
   renderPrivacyLink(s.site_copy && s.site_copy.privacyUrl);
   applyImage(document.getElementById('editorialImageSlot'), s.editorial_image_url);
 
+  currentPublicWhatsapp = s.whatsapp || '';
+  currentTreatmentCatalog = (s.site_copy && typeof s.site_copy.treatmentCatalog === 'object' && !Array.isArray(s.site_copy.treatmentCatalog)) ? s.site_copy.treatmentCatalog : {};
   setText('contactWhatsapp', s.whatsapp || 'Por configurar');
   const whatsappCta = document.getElementById('contactWhatsAppCta');
   const whatsappDigits = normalizedWhatsapp(s.whatsapp);
@@ -249,32 +251,136 @@ function renderProducts(items, whatsapp) {
   }
 }
 
-function applyService(card, service) {
-  if (!card || !service) return;
+// Catálogo interactivo. Se construye con las categorías reales de web_services,
+// para no depender de nombres/"slugs" antiguos escritos en el HTML.
+const FALLBACK_SERVICES = [
+  {id:'respaldo-1',position:1,title:'Medicina Estética',short_description:'Una atención estética individualizada, centrada en la armonía y el cuidado consciente.',is_active:true},
+  {id:'respaldo-2',position:2,title:'Spa & Beauty',short_description:'Un momento de cuidado personal para reconectar contigo y renovar tu bienestar.',is_active:true},
+  {id:'respaldo-3',position:3,title:'Metabolic',short_description:'Un enfoque de bienestar que comienza por conocer las necesidades de cada persona.',is_active:true},
+  {id:'respaldo-4',position:4,title:'Regenerative',short_description:'Conoce un enfoque responsable y personalizado del cuidado estético.',is_active:true}
+];
+let currentPublicServices = FALLBACK_SERVICES;
+let currentTreatmentCatalog = {};
+let currentPublicWhatsapp = '';
+let currentDetailTrigger = null;
 
-  const title = card.querySelector('h3');
-  const desc = card.querySelector('.service-copy p');
-  const image = card.querySelector('.image-slot');
-  const link = card.querySelector('.service-copy a');
-
-  if (title && service.title) title.textContent = service.title;
-
-  if (desc) {
-    const parts = [];
-    if (service.short_description) parts.push(service.short_description);
-    if (service.price_text) parts.push(service.price_text);
-    if (parts.length) desc.textContent = parts.join(' · ');
-  }
-
-  applyImage(image, service.image_url);
-
-  if (link && service.slug) {
-    link.href = `#contacto`;
-    link.dataset.service = service.slug;
-  }
-
-  card.style.display = service.is_active === false ? 'none' : '';
+function createTextNode(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  node.textContent = String(text ?? '');
+  return node;
 }
+
+function renderServiceCards(services) {
+  const grid = document.getElementById('serviceGrid');
+  if (!grid) return;
+  currentPublicServices = Array.isArray(services) ? services : FALLBACK_SERVICES;
+  grid.replaceChildren();
+  const visible = currentPublicServices.filter(s => s && s.is_active !== false);
+  if (!visible.length) {
+    grid.appendChild(createTextNode('p','services-empty','Próximamente compartiremos nuestras experiencias. Contáctanos para recibir información.'));
+    return;
+  }
+  visible.forEach((service, index) => {
+    const card = document.createElement('article');
+    card.className = 'service-card';
+    if (visible.length >= 3 && index === 0) card.classList.add('service-card-large');
+    if (visible.length >= 4 && index === visible.length - 1) card.classList.add('service-card-wide');
+
+    const image = document.createElement('div');
+    image.className = 'image-slot';
+    image.appendChild(createTextNode('span', '', 'NOUVĒNCE · ' + (service.title || 'Bienestar')));
+    applyImage(image, safeImageUrl(service.image_url));
+    card.appendChild(image);
+
+    const content = document.createElement('div');
+    content.className = 'service-copy';
+    content.appendChild(createTextNode('span','',String(index+1).padStart(2,'0')));
+    content.appendChild(createTextNode('h3','', service.title || 'Experiencia NOUVĒNCE'));
+    content.appendChild(createTextNode('p','',service.short_description || 'Descubre nuestras opciones de atención y bienestar.'));
+    if (service.price_text) content.appendChild(createTextNode('p','service-preview-price',service.price_text));
+    const button = createTextNode('button','service-explore','Ver tratamientos ↗');
+    button.type = 'button';
+    button.addEventListener('click', () => openServiceDialog(service, button, index+1));
+    content.appendChild(button);
+    card.appendChild(content);
+    grid.appendChild(card);
+  });
+}
+
+function openServiceDialog(service, trigger, number) {
+  const dialog = document.getElementById('serviceDialog');
+  if (!dialog) return;
+  currentDetailTrigger = trigger || null;
+  setText('serviceDialogNumber','EXPERIENCIA ' + String(number||1).padStart(2,'0') + ' · NOUVĒNCE');
+  setText('serviceDialogTitle',service.title || 'Experiencia NOUVĒNCE');
+  setText('serviceDialogIntro',service.short_description || 'Conoce nuestras opciones de atención y bienestar.');
+  const price = document.getElementById('serviceDialogPrice');
+  price.hidden = !service.price_text;
+  price.textContent = service.price_text || '';
+  const container = document.getElementById('serviceDialogTreatments');
+  container.replaceChildren();
+  const all = currentTreatmentCatalog && currentTreatmentCatalog[String(service.id)];
+  const treatments = Array.isArray(all) ? all.filter(t => t && t.is_active === true && String(t.name||'').trim()) : [];
+  if (treatments.length) {
+    container.appendChild(createTextNode('p','eyebrow','TRATAMIENTOS DISPONIBLES'));
+    treatments.forEach(treatment => {
+      const item = document.createElement('article');
+      item.className = 'service-treatment';
+      const url = safeImageUrl(treatment.image_url);
+      if (url) {
+        const image = document.createElement('img');
+        image.src = url;
+        image.loading = 'lazy';
+        image.alt = 'Tratamiento ' + treatment.name;
+        image.className = 'service-treatment-image';
+        item.appendChild(image);
+      }
+      const body = document.createElement('div');
+      body.className = 'service-treatment-body';
+      body.appendChild(createTextNode('h3','',treatment.name));
+      if (treatment.description) body.appendChild(createTextNode('p','',treatment.description));
+      const meta = document.createElement('div');
+      meta.className = 'service-treatment-meta';
+      if(treatment.duration) meta.appendChild(createTextNode('span','',treatment.duration));
+      if(treatment.price) meta.appendChild(createTextNode('span','',treatment.price));
+      if (meta.childNodes.length) body.appendChild(meta);
+      item.appendChild(body);
+      container.appendChild(item);
+    });
+  } else {
+    container.appendChild(createTextNode('p','service-treatment-pending',
+      'Estamos preparando el detalle de nuestras opciones. Escríbenos para conocer los tratamientos disponibles y recibir orientación personalizada.'));
+  }
+  const cta = document.getElementById('serviceDialogCta');
+  const digits = normalizedWhatsapp(currentPublicWhatsapp);
+  if (digits) {
+    cta.href = 'https://wa.me/' + digits + '?text=' + encodeURIComponent('Hola, quiero conocer las opciones y disponibilidad de ' + (service.title || 'NOUVĒNCE') + '.');
+    cta.target = '_blank';
+    cta.rel = 'noopener noreferrer';
+    cta.textContent = 'Consultar por WhatsApp ↗';
+  } else {
+    cta.href = '#contacto';
+    cta.removeAttribute('target');
+    cta.removeAttribute('rel');
+    cta.textContent = 'Ver información de contacto ↗';
+  }
+  if (dialog.open) dialog.close();
+  if (typeof dialog.showModal === 'function') dialog.showModal();
+  else dialog.setAttribute('open','');
+}
+
+function initServiceDialog() {
+  const dialog = document.getElementById('serviceDialog');
+  if (!dialog) return;
+  document.getElementById('serviceDialogClose').addEventListener('click',()=>dialog.close());
+  dialog.addEventListener('click', e => { if(e.target === dialog) dialog.close(); });
+  dialog.addEventListener('close',()=>{ if(currentDetailTrigger?.isConnected) currentDetailTrigger.focus(); });
+  document.getElementById('serviceDialogCta').addEventListener('click',()=>dialog.close());
+}
+
+initServiceDialog();
+renderServiceCards(FALLBACK_SERVICES);
 
 async function loadPublicContent() {
   if (!window.supabase || !CFG.SUPABASE_URL || !CFG.SUPABASE_PUBLISHABLE_KEY) {
@@ -306,10 +412,7 @@ async function loadPublicContent() {
   }
 
   if (servicesRes.status === 'fulfilled' && !servicesRes.value.error) {
-    (servicesRes.value.data || []).forEach(service => {
-      const card = document.querySelector(`[data-service-slug="${CSS.escape(service.slug)}"]`);
-      applyService(card, service);
-    });
+    renderServiceCards(servicesRes.value.data || []);
     servicesOk = true;
   } else {
     console.warn('NOUVĒNCE Web: no se pudieron cargar los servicios.', servicesRes.status === 'rejected' ? servicesRes.reason : servicesRes.value?.error);

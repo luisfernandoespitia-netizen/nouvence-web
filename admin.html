@@ -74,6 +74,21 @@
     .product-toolbar h3{font-size:25px}
     .product-actions {display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:16px}
     .hint-note {color:var(--muted);font-size:11px;line-height:1.65}
+    .treatment-catalog-editor{border-top:1px solid var(--line);margin-top:25px;padding-top:24px}
+    .treatment-editor-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .treatment-editor-head h4{font-family:Georgia,serif;font-size:24px;font-weight:400;margin:0}
+    .treatment-editor-head + p{font-size:12px;line-height:1.6;color:var(--muted);max-width:740px}
+    .treatment-editors{display:grid;gap:12px;margin:18px 0}
+    .treatment-editor-row{padding:19px;border:1px solid rgba(111,88,72,.2);background:#fbf8f3}
+    .treatment-editor-row header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:15px}
+    .treatment-editor-row header span{color:#6f5848;font-size:11px;letter-spacing:.1em}
+    .treatment-editor-row .upload-preview{width:95px;height:80px}
+    .treatment-editor-row .upload-row input[type=file]{max-width:300px}
+    .treat-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .treat-toolbar label{text-transform:none;font-size:12px;letter-spacing:0;display:flex;gap:7px;align-items:center}
+    .treat-toolbar input[type=checkbox]{width:auto}
+    .treatments-hint {font-size:12px;color:var(--muted);padding:12px;background:#f9f5ef}
+
     @media(max-width:760px){
       .grid{grid-template-columns:1fr}
       .field.full{grid-column:auto}
@@ -334,6 +349,7 @@
     const CFG = window.NOUVELLE_WEB_CONFIG || {};
     const $ = id => document.getElementById(id);
     let supa = null;
+    let treatmentCatalog = {};
 
     let toastTimer=null;
     function showStatus(message,type='ok',target='globalStatus'){
@@ -591,6 +607,8 @@
       for(const [id,value] of Object.entries(COPY_DEFAULTS)){
         if($(id)) $(id).value=typeof copy[id]==='string' ? copy[id] : value;
       }
+      treatmentCatalog=(copy.treatmentCatalog && typeof copy.treatmentCatalog === 'object' && !Array.isArray(copy.treatmentCatalog)) ? copy.treatmentCatalog : {};
+      renderTreatmentEditors();
       products=(Array.isArray(copy.products) ? copy.products : [])
         .filter(p=>p && typeof p==='object' && p.id)
         .map(p=>({...p,saved:true}));
@@ -639,6 +657,87 @@
         .replaceAll('>','&gt;');
     }
 
+    // Guarda subtratamientos en web_settings.site_copy, manteniendo intactos
+    // productos, filosofía, contacto y la información de la tarjeta de puntos.
+    function treatmentEditorHtml(treatment){
+      const image=escapeHtml(treatment.image_url||'');
+      return `<article class="treatment-editor-row" data-treatment-id="${escapeHtml(treatment.id||'')}">
+        <header>
+          <span>DETALLE EDITABLE</span>
+          <div class="treat-toolbar">
+            <label><input class="treat-active" type="checkbox" ${treatment.is_active===true?'checked':''}> Visible en la web</label>
+            <button class="btn remove treat-remove" type="button">Quitar</button>
+          </div>
+        </header>
+        <div class="grid">
+          <div class="field full"><label>Nombre del tratamiento *</label><input class="treat-name" maxlength="140" value="${escapeHtml(treatment.name||'')}" placeholder="Nombre confirmado del tratamiento"></div>
+          <div class="field full"><label>Descripción para la clienta</label><textarea class="treat-description" maxlength="950" placeholder="Explica brevemente en qué consiste, sin prometer resultados">${escapeHtml(treatment.description||'')}</textarea></div>
+          <div class="field"><label>Duración (opcional)</label><input class="treat-duration" maxlength="80" value="${escapeHtml(treatment.duration||'')}" placeholder="Ej. Duración por confirmar"></div>
+          <div class="field"><label>Precio orientativo (opcional)</label><input class="treat-price" maxlength="90" value="${escapeHtml(treatment.price||'')}" placeholder="Ej. Consultar precio"></div>
+          <div class="field full"><label>Imagen del tratamiento (opcional)</label>
+            <div class="upload-row">
+              <img class="upload-preview treat-preview" src="${image}" alt="Vista previa" ${image?'':'style="display:none"'}>
+              <input class="treat-file" type="file" accept="image/jpeg,image/png,image/webp">
+              <button class="btn remove treat-remove-image" type="button">Quitar imagen</button>
+            </div>
+            <input class="treat-image" type="hidden" value="${image}">
+            <span class="hint-note">JPG, PNG o WebP · máximo 5 MB. Se sube al guardar.</span>
+          </div>
+        </div>
+      </article>`;
+    }
+
+    function renderTreatmentEditors(card){
+      const cards=card ? [card] : Array.from(document.querySelectorAll('#serviceList .service'));
+      cards.forEach(category=>{
+        const list=category.querySelector('.treatment-editors');
+        if(!list) return;
+        const items=treatmentCatalog[String(category.dataset.id)];
+        list.innerHTML=(Array.isArray(items) ? items : []).map(treatmentEditorHtml).join('');
+      });
+    }
+
+    async function saveTreatments(card,btn){
+      const id=String(card.dataset.id);
+      const rows=Array.from(card.querySelectorAll('.treatment-editor-row'));
+      const next=[];
+      btn.disabled=true;
+      btn.textContent='Guardando tratamientos...';
+      try {
+        for (const row of rows){
+          const field=(selector)=>row.querySelector(selector).value.trim();
+          const treatment={
+            id:row.dataset.treatmentId||makeProductId(),
+            name:field('.treat-name'),
+            description:field('.treat-description'),
+            duration:field('.treat-duration'),
+            price:field('.treat-price'),
+            image_url:field('.treat-image'),
+            is_active:row.querySelector('.treat-active').checked
+          };
+          if(!treatment.name) throw new Error('Escribe el nombre de todos los tratamientos antes de guardar.');
+          const file=row.querySelector('.treat-file').files[0];
+          if(file) treatment.image_url=await uploadImage(file,'treatments/'+safeName(id));
+          next.push(treatment);
+        }
+        // Leer la versión más reciente evita borrar productos u otros textos.
+        const {data,error}=await supa.from('web_settings').select('site_copy').eq('id',1).maybeSingle();
+        if(error) throw explainError(error);
+        if(!data) throw new Error('No se encontró la configuración de NOUVĒNCE.');
+        const copy={...(data.site_copy||{})};
+        copy.treatmentCatalog={...(copy.treatmentCatalog||{}),[id]:next};
+        await updateSettings({site_copy:copy});
+        treatmentCatalog=copy.treatmentCatalog;
+        renderTreatmentEditors(card);
+        showStatus('Catálogo de «'+(card.querySelector('.svc-title').value||'servicio')+'» guardado. Los tratamientos visibles aparecerán al seleccionar «Ver tratamientos» en la página pública.');
+      }catch(error){
+        showStatus(explainError(error).message,'error');
+      }finally{
+        btn.disabled=false;
+        btn.textContent='Guardar tratamientos de esta categoría';
+      }
+    }
+
     async function loadServices(){
       const {data,error}=await supa.from('web_services').select('*').order('position',{ascending:true});
       if(error) throw error;
@@ -679,6 +778,16 @@
           </div>
           <div class="save-row">
             <button class="btn save-service" type="button">Guardar servicio</button>
+          </div>
+          <div class="treatment-catalog-editor">
+            <div class="treatment-editor-head">
+              <h4>Tratamientos de esta categoría</h4>
+              <button class="btn add-treatment" type="button">+ Añadir tratamiento</button>
+            </div>
+            <p>Al pulsar «Ver tratamientos» en la web, la clienta verá únicamente los tratamientos que guardes y marques como visibles. No publiques procedimientos no confirmados.</p>
+            <div class="treatment-editors"></div>
+            <p class="treatments-hint">Puedes indicar nombre, descripción, duración, precio e imagen; todos los campos salvo el nombre son opcionales.</p>
+            <div class="save-row"><button class="btn gold save-treatments" type="button">Guardar tratamientos de esta categoría</button></div>
           </div>
         </article>
       `).join('');
@@ -732,6 +841,7 @@
           }
         });
       });
+      renderTreatmentEditors();
     }
 
     async function saveService(card,show=true){
@@ -854,6 +964,38 @@
 
       attachCopySave('saveManifestoBtn', ['manifestoEyebrow','manifestoTitle','manifestoBody','manifestoNote'], 'Filosofía guardada y confirmada en Supabase');
       attachCopySave('saveServicesIntroBtn', ['servicesEyebrow','servicesTitle','servicesIntro'], 'Presentación guardada y confirmada en Supabase');
+      $('serviceList').addEventListener('click',async event=>{
+        const btn=event.target.closest('button');
+        if(!btn) return;
+        const card=btn.closest('.service');
+        if(!card) return;
+        if(btn.classList.contains('add-treatment')){
+          const newTreatment={id:makeProductId(),name:'',description:'',duration:'',price:'',image_url:'',is_active:false};
+          const list=card.querySelector('.treatment-editors');
+          list.insertAdjacentHTML('beforeend',treatmentEditorHtml(newTreatment));
+          list.lastElementChild.querySelector('.treat-name').focus();
+          return;
+        }
+        if(btn.classList.contains('treat-remove')){
+          if(confirm('¿Quitar este tratamiento del formulario? Para aplicar el cambio a la página debes pulsar «Guardar tratamientos de esta categoría».')){
+            btn.closest('.treatment-editor-row').remove();
+          }
+          return;
+        }
+        if(btn.classList.contains('treat-remove-image')){
+          const row=btn.closest('.treatment-editor-row');
+          row.querySelector('.treat-image').value='';
+          row.querySelector('.treat-file').value='';
+          const preview=row.querySelector('.treat-preview');
+          preview.removeAttribute('src');preview.style.display='none';
+          showStatus('Imagen retirada del formulario. Pulsa «Guardar tratamientos de esta categoría» para confirmar.');
+          return;
+        }
+        if(btn.classList.contains('save-treatments')){
+          await saveTreatments(card,btn);
+        }
+      });
+
       attachCopySave('saveAboutBtn', ['aboutEyebrow','aboutTitle','aboutBody','missionTitle','missionBody','visionTitle','visionBody','valuesTitle','valuesBody'], 'Nosotros, misión, visión y valores guardados en Supabase');
       attachCopySave('saveProductsIntroBtn', ['productsEyebrow','productsTitle','productsIntro'], 'Presentación de productos guardada en Supabase');
       attachCopySave('saveFaqBtn', ['faqEyebrow','faqTitle','faqIntro','faqQuestion1','faqAnswer1','faqQuestion2','faqAnswer2','faqQuestion3','faqAnswer3'], 'Preguntas frecuentes guardadas en Supabase');
