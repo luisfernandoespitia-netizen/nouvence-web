@@ -5,7 +5,7 @@ let db = null;
 
 function setText(id, value) {
   const el = document.getElementById(id);
-  if (el && value !== null && value !== undefined && String(value).trim() !== '') {
+  if (el && value !== null && value !== undefined) {
     el.textContent = value;
   }
 }
@@ -26,27 +26,63 @@ function applyImage(slot, url) {
   slot.querySelectorAll('span,small').forEach(el => el.style.display = 'none');
 }
 
+// Build formatted titles with DOM nodes, never with user supplied innerHTML.
+function appendText(el, text) {
+  el.appendChild(document.createTextNode(text));
+}
+
 function renderEditorialTitle(text) {
   const el = document.getElementById('editorialTitle');
-  if (!el || !text || !String(text).trim()) return;
+  if (!el || text === undefined || text === null) return;
   const t = String(text).trim();
   const idx = t.indexOf('.');
+  el.replaceChildren();
   if (idx > 0 && idx < t.length - 1) {
-    el.innerHTML = `${t.slice(0, idx + 1)}<br>${t.slice(idx + 1).trim()}`;
-  } else {
-    el.textContent = t;
-  }
+    appendText(el, t.slice(0, idx + 1));
+    el.appendChild(document.createElement('br'));
+    appendText(el, t.slice(idx + 1).trim());
+  } else appendText(el, t);
 }
 
 function renderHeroTitle(text) {
   const el = document.getElementById('heroTitle');
-  if (!el || !text || !String(text).trim()) return;
+  if (!el || text === undefined || text === null) return;
   const t = String(text).trim();
   const comma = t.indexOf(',');
+  el.replaceChildren();
   if (comma > 0 && comma < t.length - 1) {
-    el.innerHTML = `${t.slice(0, comma + 1)}<br><em>${t.slice(comma + 1).trim()}</em>`;
-  } else {
-    el.textContent = t;
+    appendText(el, t.slice(0, comma + 1));
+    el.appendChild(document.createElement('br'));
+    const em = document.createElement('em');
+    em.textContent = t.slice(comma + 1).trim();
+    el.appendChild(em);
+  } else appendText(el, t);
+}
+
+// Each group maps to literal HTML ids, never arbitrary selectors or HTML.
+const SITE_COPY_IDS = {
+  manifestoEyebrow: 'manifestoEyebrow',
+  manifestoTitle: 'manifestoTitle',
+  manifestoBody: 'manifestoBody',
+  manifestoNote: 'manifestoNote',
+  servicesEyebrow: 'servicesEyebrow',
+  servicesTitle: 'servicesTitle',
+  servicesIntro: 'servicesIntro',
+  featuredEyebrow: 'featuredEyebrow',
+  featuredLink: 'featuredLink',
+  pointsEyebrow: 'pointsEyebrow',
+  pointsTitle: 'pointsTitle',
+  pointsBody: 'pointsBody',
+  pointsButtonLabel: 'pointsButtonLabel',
+  contactEyebrow: 'contactEyebrow',
+  contactTitle: 'contactTitle',
+  contactIntro: 'contactIntro'
+};
+
+function applySiteCopy(copy) {
+  if (!copy || typeof copy !== 'object') return;
+  for (const [field, id] of Object.entries(SITE_COPY_IDS)) {
+    setText(id, copy[field]);
   }
 }
 
@@ -64,6 +100,8 @@ function applySettings(s) {
 
   renderEditorialTitle(s.editorial_title);
   setText('editorialBody', s.editorial_body);
+
+  applySiteCopy(s.site_copy);
   applyImage(document.getElementById('editorialImageSlot'), s.editorial_image_url);
 
   setText('contactWhatsapp', s.whatsapp || 'Por configurar');
@@ -73,7 +111,18 @@ function applySettings(s) {
   const instagram = document.getElementById('contactInstagram');
   if (instagram) {
     if (s.instagram_url) {
-      instagram.innerHTML = `<a href="${s.instagram_url}" target="_blank" rel="noopener">Instagram ↗</a>`;
+      try {
+        const url = new URL(s.instagram_url, location.origin);
+        if (!['https:', 'http:'].includes(url.protocol)) throw new Error('Liga inválida');
+        const a = document.createElement('a');
+        a.href = url.href;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.textContent = 'Instagram ↗';
+        instagram.replaceChildren(a);
+      } catch (e) {
+        instagram.textContent = 'Instagram';
+      }
     } else {
       instagram.textContent = 'Por configurar';
     }
@@ -109,39 +158,44 @@ function applyService(card, service) {
 
 async function loadPublicContent() {
   if (!window.supabase || !CFG.SUPABASE_URL || !CFG.SUPABASE_PUBLISHABLE_KEY) {
-    console.warn('NOUVĒNCE Web: Supabase no está configurado; se muestra el contenido base.');
+    console.warn('NOUVĒNCE Web: falta configuración de Supabase; se muestra el contenido base.');
+    document.documentElement.dataset.contentSource = 'fallback';
+    return;
+  }
+  try {
+    db = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_PUBLISHABLE_KEY);
+  } catch (error) {
+    console.error('NOUVĒNCE Web: error al iniciar Supabase.', error);
+    document.documentElement.dataset.contentSource = 'fallback';
     return;
   }
 
-  db = window.supabase.createClient(
-    CFG.SUPABASE_URL,
-    CFG.SUPABASE_PUBLISHABLE_KEY
-  );
+  // A failure to read the services must not prevent the texts from loading.
+  const [settingsRes, servicesRes] = await Promise.allSettled([
+    db.from('web_settings').select('*').eq('id', 1).maybeSingle(),
+    db.from('web_services').select('*').order('position', { ascending: true })
+  ]);
 
-  try {
-    const [settingsRes, servicesRes] = await Promise.all([
-      db.from('web_settings').select('*').eq('id', 1).maybeSingle(),
-      db.from('web_services').select('*').order('position', { ascending: true })
-    ]);
+  let settingsOk = false;
+  let servicesOk = false;
+  if (settingsRes.status === 'fulfilled' && !settingsRes.value.error && settingsRes.value.data) {
+    applySettings(settingsRes.value.data);
+    settingsOk = true;
+  } else {
+    console.warn('NOUVĒNCE Web: no se pudieron cargar los textos.', settingsRes.status === 'rejected' ? settingsRes.reason : settingsRes.value?.error || 'No existe web_settings.id=1');
+  }
 
-    if (settingsRes.error) throw settingsRes.error;
-    if (servicesRes.error) throw servicesRes.error;
-
-    applySettings(settingsRes.data);
-
-    const services = servicesRes.data || [];
-    services.forEach(service => {
-      const card = document.querySelector(
-        `[data-service-slug="${CSS.escape(service.slug)}"]`
-      );
+  if (servicesRes.status === 'fulfilled' && !servicesRes.value.error) {
+    (servicesRes.value.data || []).forEach(service => {
+      const card = document.querySelector(`[data-service-slug="${CSS.escape(service.slug)}"]`);
       applyService(card, service);
     });
-
-    document.documentElement.dataset.contentSource = 'supabase';
-  } catch (error) {
-    console.error('NOUVĒNCE Web: no se pudo cargar Supabase.', error);
-    document.documentElement.dataset.contentSource = 'fallback';
+    servicesOk = true;
+  } else {
+    console.warn('NOUVĒNCE Web: no se pudieron cargar los servicios.', servicesRes.status === 'rejected' ? servicesRes.reason : servicesRes.value?.error);
   }
+  document.documentElement.dataset.contentSource = settingsOk ? 'supabase' : 'fallback';
+  document.documentElement.dataset.servicesSource = servicesOk ? 'supabase' : 'fallback';
 }
 
 loadPublicContent();

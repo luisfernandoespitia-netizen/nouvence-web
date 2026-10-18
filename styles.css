@@ -540,3 +540,9 @@ footer img{width:125px}
   .hero-visual::after { display: none !important; }
   .nouvence-motion-ready .nouvence-reveal { opacity: 1 !important; transform: none !important; }
 }
+
+/* Respetar los saltos de línea introducidos en el editor. */
+#heroBody, #editorialBody, #manifestoTitle, #manifestoBody,
+#manifestoNote, #servicesIntro, #pointsBody, #contactTitle, #contactIntro {
+  white-space: pre-line;
+}

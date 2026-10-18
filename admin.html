@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f6f0e8">
   <title>NOUVĒNCE · Administración Web</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=2"></script>
+  <script src="config.js?v=4"></script>
   <style>
     :root{
       --ivory:#f6f0e8;
@@ -156,6 +156,30 @@
     </section>
 
     <section class="card">
+      <div class="eyebrow">El universo NOUVĒNCE</div>
+      <h2>Filosofía de la marca</h2>
+      <p class="muted">Aquí puedes cambiar “Belleza real. Resultados que se sienten.” y el texto que aparece debajo.</p>
+      <div class="grid">
+        <div class="field full"><label for="manifestoEyebrow">Subtítulo</label><input id="manifestoEyebrow"></div>
+        <div class="field full"><label for="manifestoTitle">Título principal</label><textarea id="manifestoTitle" rows="2" placeholder="Puedes usar un salto de línea"></textarea></div>
+        <div class="field full"><label for="manifestoBody">Texto descriptivo</label><textarea id="manifestoBody"></textarea></div>
+        <div class="field full"><label for="manifestoNote">Frase inferior</label><input id="manifestoNote"></div>
+      </div>
+      <div class="save-row"><button id="saveManifestoBtn" class="btn gold" type="button">Guardar filosofía</button></div>
+    </section>
+
+    <section class="card">
+      <div class="eyebrow">Encabezado de tratamientos</div>
+      <h2>Presentación de servicios</h2>
+      <div class="grid">
+        <div class="field"><label for="servicesEyebrow">Subtítulo</label><input id="servicesEyebrow"></div>
+        <div class="field"><label for="servicesTitle">Título</label><input id="servicesTitle"></div>
+        <div class="field full"><label for="servicesIntro">Descripción</label><textarea id="servicesIntro"></textarea></div>
+      </div>
+      <div class="save-row"><button id="saveServicesIntroBtn" class="btn gold" type="button">Guardar presentación</button></div>
+    </section>
+
+    <section class="card">
       <div class="eyebrow">Editorial</div>
       <h2>Tratamiento destacado</h2>
       <div class="grid">
@@ -167,6 +191,8 @@
           <label for="editorialBody">Texto</label>
           <textarea id="editorialBody"></textarea>
         </div>
+          <div class="field"><label for="featuredEyebrow">Subtítulo de sección</label><input id="featuredEyebrow"></div>
+          <div class="field"><label for="featuredLink">Texto del enlace</label><input id="featuredLink"></div>
         <div class="field full">
           <label>Imagen editorial</label>
           <div class="upload-row">
@@ -179,12 +205,29 @@
           <input id="editorialImageUrl" type="hidden">
         </div>
       </div>
+      <div class="save-row"><button id="saveEditorialBtn" class="btn gold" type="button">Guardar destacado</button></div>
+    </section>
+
+    <section class="card">
+      <div class="eyebrow">Programa de puntos</div>
+      <h2>Textos del programa</h2>
+      <p class="muted">El enlace seguro a la tarjeta de puntos se conserva. Aquí solo cambias los textos.</p>
+      <div class="grid">
+        <div class="field"><label for="pointsEyebrow">Subtítulo</label><input id="pointsEyebrow"></div>
+        <div class="field"><label for="pointsButtonLabel">Texto del botón</label><input id="pointsButtonLabel"></div>
+        <div class="field full"><label for="pointsTitle">Título</label><input id="pointsTitle"></div>
+        <div class="field full"><label for="pointsBody">Descripción</label><textarea id="pointsBody"></textarea></div>
+      </div>
+      <div class="save-row"><button id="savePointsBtn" class="btn gold" type="button">Guardar puntos</button></div>
     </section>
 
     <section class="card">
       <div class="eyebrow">Contacto</div>
       <h2>Datos del negocio</h2>
       <div class="grid">
+        <div class="field"><label for="contactEyebrow">Subtítulo de sección</label><input id="contactEyebrow"></div>
+        <div class="field"><label for="contactTitle">Título de sección</label><input id="contactTitle"></div>
+        <div class="field full"><label for="contactIntro">Texto de presentación</label><textarea id="contactIntro"></textarea></div>
         <div class="field">
           <label for="whatsapp">WhatsApp</label>
           <input id="whatsapp" placeholder="Ej. +52 55 ...">
@@ -229,7 +272,7 @@
       el.textContent=message;
       el.className=`status ${type}`;
       el.classList.remove('hidden');
-      setTimeout(()=>el.classList.add('hidden'),3500);
+      if(type==='ok') setTimeout(()=>el.classList.add('hidden'),6000);
     }
 
     function init(){
@@ -283,6 +326,35 @@
       }
     }
 
+    const COPY_DEFAULTS = {
+      manifestoEyebrow: 'El universo NOUVĒNCE',
+      manifestoTitle: 'Belleza real.\nResultados que se sienten.',
+      manifestoBody: 'Creemos en una estética que acompaña, cuida y realza. Cada tratamiento parte de una intención: verte bien sin dejar de verte tú.',
+      manifestoNote: 'Elegancia · bienestar · ciencia · naturalidad',
+      servicesEyebrow: 'Tratamientos',
+      servicesTitle: 'Encuentra tu ritual.',
+      servicesIntro: 'Explora una selección de experiencias de belleza y bienestar, pensadas para acompañar lo mejor de ti.',
+      featuredEyebrow: 'Tratamiento destacado',
+      featuredLink: 'Conocer más →',
+      pointsEyebrow: 'Programa NOUVĒNCE',
+      pointsTitle: 'Tu preferencia tiene recompensa.',
+      pointsBody: 'Con tus compras podrás recibir puntos equivalentes al 5% del importe pagado. Consulta tu tarjeta digital NOUVĒNCE y descubre los beneficios de tu preferencia.',
+      pointsButtonLabel: 'Consulta tu tarjeta',
+      contactEyebrow: 'Contacto',
+      contactTitle: 'Tu próxima visita\nempieza aquí.',
+      contactIntro: 'Estamos aquí para acompañarte a descubrir el tratamiento que mejor se adapte a ti.'
+    };
+
+    // Supabase may silently return zero updated rows (e.g. blocked by RLS).
+    // Treat that as an error instead of displaying a false "guardado" message.
+    function explainError(error){
+      const message = String(error?.message || error || 'Error desconocido');
+      if (message.includes('site_copy') || error?.code === '42703') {
+        return new Error('Falta habilitar los nuevos textos en Supabase. Ejecuta el archivo SQL_ACTIVAR_TEXTOS.sql incluido en el ZIP. Detalle: ' + message);
+      }
+      return error instanceof Error ? error : new Error(message);
+    }
+
     async function loadSettings(){
       const {data,error}=await supa.from('web_settings').select('*').eq('id',1).single();
       if(error) throw error;
@@ -304,13 +376,44 @@
       $('instagramUrl').value=data.instagram_url||'';
       $('address').value=data.address||'';
       $('hours').value=data.hours||'';
+      const copy={...COPY_DEFAULTS,...(data.site_copy||{})};
+      for(const [id,value] of Object.entries(copy)){
+        if($(id)) $(id).value=value??'';
+      }
     }
 
     async function updateSettings(patch){
-      const {error}=await supa.from('web_settings')
-        .update({...patch,updated_at:new Date().toISOString()}).eq('id',1);
-      if(error) throw error;
-      await loadSettings();
+      const {data,error}=await supa.from('web_settings')
+        .update({...patch,updated_at:new Date().toISOString()})
+        .eq('id',1).select('*').maybeSingle();
+      if(error) throw explainError(error);
+      if(!data) throw new Error('Supabase no confirmó ningún cambio en web_settings (id=1). Revisa permisos de edición/RLS del usuario administrador.');
+      return data;
+    }
+
+    async function updateCopy(fields,otherPatch={}){
+      const {data,error}=await supa.from('web_settings')
+        .select('site_copy').eq('id',1).maybeSingle();
+      if(error) throw explainError(error);
+      if(!data) throw new Error('No se encontró web_settings (id=1).');
+      const copy={...(data.site_copy||{})};
+      for(const id of fields) copy[id]=$(id).value.trim();
+      await updateSettings({...otherPatch,site_copy:copy});
+    }
+
+    function attachCopySave(buttonId,fields,message){
+      $(buttonId).addEventListener('click',async()=>{
+        const btn=$(buttonId);
+        btn.disabled=true;
+        try {
+          await updateCopy(fields);
+          showStatus(message);
+        } catch(error) {
+          showStatus(explainError(error).message,'error');
+        } finally {
+          btn.disabled=false;
+        }
+      });
     }
 
     function escapeHtml(value){
@@ -426,9 +529,13 @@
         is_active:card.querySelector('.svc-active').checked,
         updated_at:new Date().toISOString()
       };
-      const {error}=await supa.from('web_services').update(patch).eq('id',id);
-      if(error) throw error;
-      if(show) showStatus('Servicio guardado');
+      const {data,error}=await supa.from('web_services')
+        .update(patch).eq('id',id).select('id').maybeSingle();
+      if(error) throw explainError(error);
+      if(!data) throw new Error('Supabase no confirmó el cambio en este servicio. Revisa permisos de edición/RLS en web_services.');
+      const heading=card.querySelector('.service-head h3');
+      if(heading) heading.textContent=patch.title;
+      if(show) showStatus('Servicio guardado y confirmado en Supabase');
     }
 
     async function enterApp(){
@@ -530,6 +637,23 @@
         }
       });
 
+      attachCopySave('saveManifestoBtn', ['manifestoEyebrow','manifestoTitle','manifestoBody','manifestoNote'], 'Filosofía guardada y confirmada en Supabase');
+      attachCopySave('saveServicesIntroBtn', ['servicesEyebrow','servicesTitle','servicesIntro'], 'Presentación guardada y confirmada en Supabase');
+      attachCopySave('savePointsBtn', ['pointsEyebrow','pointsTitle','pointsBody','pointsButtonLabel'], 'Puntos guardados y confirmados en Supabase');
+      $('saveEditorialBtn').addEventListener('click', async()=>{
+        const btn=$('saveEditorialBtn');
+        btn.disabled=true;
+        try {
+          await updateCopy(['featuredEyebrow','featuredLink'],{
+            editorial_title:$('editorialTitle').value.trim(),
+            editorial_body:$('editorialBody').value.trim(),
+            editorial_image_url:$('editorialImageUrl').value.trim()||null
+          });
+          showStatus('Tratamiento destacado guardado y confirmado en Supabase');
+        } catch(error) { showStatus(explainError(error).message,'error'); }
+        finally {btn.disabled=false;}
+      });
+
       $('settingsForm').addEventListener('submit',async e=>{
         e.preventDefault();
         try{
@@ -539,12 +663,9 @@
             hero_body:$('heroBody').value.trim(),
             hero_cta_label:$('heroCtaLabel').value.trim(),
             hero_cta_url:$('heroCtaUrl').value.trim()||null,
-            hero_image_url:$('heroImageUrl').value.trim()||null,
-            editorial_title:$('editorialTitle').value.trim(),
-            editorial_body:$('editorialBody').value.trim(),
-            editorial_image_url:$('editorialImageUrl').value.trim()||null
+            hero_image_url:$('heroImageUrl').value.trim()||null
           });
-          showStatus('Portada guardada');
+          showStatus('Portada guardada y confirmada en Supabase');
         }catch(error){
           showStatus(error.message,'error');
         }
@@ -552,13 +673,13 @@
 
       $('saveContactBtn').addEventListener('click',async()=>{
         try{
-          await updateSettings({
+          await updateCopy(['contactEyebrow','contactTitle','contactIntro'],{
             whatsapp:$('whatsapp').value.trim()||null,
             instagram_url:$('instagramUrl').value.trim()||null,
             address:$('address').value.trim()||null,
             hours:$('hours').value.trim()||null
           });
-          showStatus('Contacto guardado');
+          showStatus('Contacto guardado y confirmado en Supabase');
         }catch(error){
           showStatus(error.message,'error');
         }
